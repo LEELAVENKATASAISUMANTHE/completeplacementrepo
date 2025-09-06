@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import adminRoutes from './routes/admin.routes.js';
+import { getPool } from './db/setup.db.js';
+import pg from 'connect-pg-simple';
 
 dotenv.config();
 
@@ -43,23 +45,36 @@ app.use(
     limit: "16kb",
   })
 );
+let pools;
+try {
+  // assign to outer `pools` instead of creating a new local const (fixes undefined pool)
+  pools = getPool();
+} catch (error) {
+  console.error("Error initializing database connection pool:", error);
+}
+const PGStore = pg(session);
+const sessionStore = new PGStore({
+  pool: pools, // Use your existing database connection pool
+  tableName: 'user_sessions', // The table name to store sessions
+  createTableIfMissing: true,
+});
 
-app.use(express.static("public"));
-app.use(cookieParser());
-
-// ✅ Make sure SESSION_SECRET is set in Vercel environment variables
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "fallback_secret",
+    store: sessionStore, // Use the Postgres store
+    secret: process.env.SESSION_SECRET, // Make sure this is a strong, random secret
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // only HTTPS in production
-      httpOnly: true,
-      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true, // Prevents client-side JS from accessing the cookie
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
     },
   })
 );
+
+app.use(express.static("public"));
+app.use(cookieParser());
 
 // Add routes
 app.use('/api', adminRoutes);
