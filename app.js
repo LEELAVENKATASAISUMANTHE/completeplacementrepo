@@ -3,6 +3,7 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
+import adminRoutes from './routes/admin.routes.js';
 
 dotenv.config();
 
@@ -60,19 +61,18 @@ app.use(
   })
 );
 
+// Add routes
+app.use('/', adminRoutes);
+
 // Example route
 app.get("/", (req, res) => {
   res.send("Backend is running on Vercel 🚀");
 });
 
+// Export app for both local development and Vercel
+export { app };
+
 // ✅ This is the fix for Vercel
 export default function handler(req, res) {
   return app(req, res);
-}
-
-// For local dev
-if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`Server running locally on http://localhost:${port}`);
-  });
 }

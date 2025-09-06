@@ -1,30 +1,22 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "allowJs": true,
     "checkJs": false,
     "declaration": false,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "removeComments": true,
     "noEmit": true,
     "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "noImplicitReturns": false,
-    "noImplicitThis": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "allowImportingTsExtensions": false,
+    "noEmitOnError": false
   },
   "include": [
     "**/*.js",
@@ -42,8 +34,5 @@
     "build",
     "**/*.test.js",
     "**/*.spec.js"
-  ],
-  "ts-node": {
-    "esm": true
-  }
+  ]
 }
