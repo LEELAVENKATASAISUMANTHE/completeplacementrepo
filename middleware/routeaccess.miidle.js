@@ -3,6 +3,8 @@ import { checkUserPermission } from "../db/haspermission.js";
 
 // Basic authentication check
 export const requireAuth = (req, res, next) => {
+  console.log("Checking authentication for route:", req.originalUrl);
+  console.log("Session user:", req.session.user);
   if (!req.session.user) {
     return res.status(401).json({ 
       success: false, 
