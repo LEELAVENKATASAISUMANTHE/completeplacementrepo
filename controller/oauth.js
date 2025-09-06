@@ -76,7 +76,7 @@ const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', pa
 
 export const logout = asyncHandler((req, res) => {
     req.session.destroy();
-    res.redirect("/");
+  
 });
 
 export const getUserData = asyncHandler((req, res) => {

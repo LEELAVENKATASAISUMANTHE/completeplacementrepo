@@ -62,7 +62,7 @@ app.use(
 );
 
 // Add routes
-app.use('/', adminRoutes);
+app.use('/api', adminRoutes);
 
 // Example route
 app.get("/", (req, res) => {
