@@ -1,5 +1,5 @@
 import {createUsers, getUsers,logincheck,userbyemail,deleteUserById} from "../db/user.db.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 import { hashPassword } from "../utils/hash.js";
 
 export const registerUser = asyncHandler(async (req, res) => {

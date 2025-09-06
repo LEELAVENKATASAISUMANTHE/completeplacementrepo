@@ -1,5 +1,5 @@
 import { createRoles,getRoles,updateRole,deleteRole,getRoleById,getRoleByName } from "../db/role.db.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 
 export const createRole = asyncHandler(async (req, res) => {
   const roleData = req.body;

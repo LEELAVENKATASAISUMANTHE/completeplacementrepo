@@ -1,4 +1,4 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 import { createPermissions, getPermissions, updatePermission, deletePermission, getPermissionById } from "../db/permission.db.js";
 
 export const insertPrermission = asyncHandler(async (req, res) => {

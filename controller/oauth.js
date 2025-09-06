@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { userbyemail, createUsers } from '../db/user.db.js';
-import { asyncHandler } from '../utils/asyncHandler.js';
+import { asyncHandler } from '../utils/AsyncHandler.js';
 import { tokendecoded, verifyGoogleToken } from '../middleware/googletoktn.middleware.js';
 export const  oauthConsent = asyncHandler((req, res) => {
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +

@@ -1,4 +1,4 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 import { assignPermissionToRole, getAllRolePermissions, removePermissionFromRole, getallpermissionbyroleid, getallrolebypermissionid } from "../db/role.db.js";
 
 export const assignPermission = asyncHandler(async (req, res) => {
