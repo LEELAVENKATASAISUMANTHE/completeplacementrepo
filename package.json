@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "create-superuser": "node scripts/create-superuser.js",
-    "verify-superuser": "node scripts/verify-superuser.js"
+    "verify-superuser": "node scripts/verify-superuser.js",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -28,5 +29,9 @@
     "mssql": "^11.0.1",
     "nodemon": "^3.1.10",
     "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.2"
   }
 }
