@@ -1,0 +1,32 @@
+{
+  "name": "erpcompletebackend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "create-superuser": "node scripts/create-superuser.js",
+    "verify-superuser": "node scripts/verify-superuser.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "google-auth-library": "^10.2.1",
+    "jwt-decode": "^4.0.0",
+    "mssql": "^11.0.1",
+    "nodemon": "^3.1.10",
+    "postgres": "^3.4.7"
+  }
+}
