@@ -18,6 +18,7 @@ export const loginUser = asyncHandler(async (req, res) => {
         const result = await logincheck(email, password);
         if (result.success) {
             req.session.user = result.user;
+            console.log("User logged in:", req.session.user);
             return res.status(200).json({ route: req.originalUrl, success: true, user: result.user });
         }
         return res.status(401).json({ route: req.originalUrl, success: false, message: "Invalid email or password" });
