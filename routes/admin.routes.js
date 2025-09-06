@@ -1,5 +1,5 @@
 import { registerUser, loginUser, fetchUsers, getUserByEmail, getUserData } from "../controller/user.controller.js";
-import { oauthConsent, oauthCallback, logout, getUserData as getOAuthUserData } from "../controller/oauth.js";
+import { oauthConsent, oauthCallback, logout } from "../controller/oauth.js";
 import { createRole, fetchRoleById, fetchRoleByName, fetchRoles, modifyRole, removeRole } from "../controller/role.controller.js";
 import { insertPrermission, fetchPermissions, removePermission, getPermissionId } from "../controller/permission.controller.js";
 import { assignPermission, removePermissions, fetchAllRolePermissions, fetchAllPermissionsByRoleId, fetchAllRolesByPermissionId } from "../controller/rolepermission.controller.js";
@@ -41,7 +41,7 @@ router.get("/auth/google/callback", authLimiter, oauthCallback);
 router.get("/logout", requireAuth, logout);
 
 // User data endpoints
-router.get("/userdata", requireAuth, getOAuthUserData);
+router.get("/userdata", requireAuth, getUserData);
 router.get("/userbyemail", requireAuth, requirePermission('user.read'), getUserByEmail);
 
 // === USER MANAGEMENT ROUTES ===
