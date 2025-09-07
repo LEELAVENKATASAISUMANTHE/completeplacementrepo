@@ -12,7 +12,8 @@ const internalErr = (req, res, msg = 'Internal Server Error') =>
 
 // Basic authentication check
 export const requireAuth = (req, res, next) => {
-  if (!req.session?.user && !req.session?.userId) return unauthorized(req, res);
+  console.log('Session data:', req.session.user);
+  if (!req.session?.user ) return unauthorized(req, res);
   next();
 };
 
