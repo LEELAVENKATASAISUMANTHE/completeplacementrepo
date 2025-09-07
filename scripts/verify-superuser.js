@@ -5,16 +5,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function verifySuperUser() {
-    const sql = getPool();
+    const pool = getPool();
     
     try {
         console.log("🔍 Verifying superuser login...");
         
         // Get the user
-        const user = await sql`SELECT * FROM users WHERE email = 'sumanth@superadmin.com'`;
-        
+        const userRes = await pool.query('SELECT * FROM users WHERE email = $1', ['sumanth@superadmin.com']);
+        const user = userRes.rows;
         if (user.length === 0) {
-            console.log("❌ User not found!");
+            console.log('❌ User not found!');
             return;
         }
         
@@ -31,12 +31,13 @@ async function verifySuperUser() {
             console.log("Active:", user[0].is_active);
             
             // Check role details
-            const role = await sql`SELECT * FROM roles WHERE id = ${user[0].role_id}`;
+            const roleRes = await pool.query('SELECT * FROM roles WHERE id = $1', [user[0].role_id]);
+            const role = roleRes.rows;
             if (role.length > 0) {
-                console.log("\n🎭 Role Details:");
-                console.log("Role Name:", role[0].name);
-                console.log("Description:", role[0].description);
-                console.log("Role Active:", role[0].is_active);
+                console.log('\n🎭 Role Details:');
+                console.log('Role Name:', role[0].name);
+                console.log('Description:', role[0].description);
+                console.log('Role Active:', role[0].is_active);
             }
             
             console.log("\n🎉 Superuser is ready to use!");
@@ -51,8 +52,9 @@ async function verifySuperUser() {
     } catch (error) {
         console.error("❌ Error verifying superuser:", error);
     } finally {
-        await sql.end();
-        console.log("\nDatabase connection closed.");
+        const poolRef = getPool();
+        await poolRef.end();
+        console.log('\nDatabase pool closed.');
     }
 }
 

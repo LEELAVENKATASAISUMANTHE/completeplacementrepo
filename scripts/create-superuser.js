@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function createSuperUser() {
-    const sql = getPool();
+    const pool = getPool();
     
     try {
         console.log("Starting superuser creation process...");
@@ -15,7 +15,8 @@ async function createSuperUser() {
         console.log("Password hashed successfully");
         
         // Check if user with ID 1 already exists
-        const existingUser = await sql`SELECT * FROM users WHERE id = 1`;
+    const existingUserRes = await pool.query('SELECT * FROM users WHERE id = $1', [1]);
+    const existingUser = existingUserRes.rows;
         
         if (existingUser.length > 0) {
             console.log("User with ID 1 already exists:");
@@ -24,16 +25,10 @@ async function createSuperUser() {
             // Ask if we should update the existing user
             console.log("Updating existing user with new credentials...");
             
-            await sql`
-                UPDATE users 
-                SET name = 'sumanth', 
-                    email = 'sumanth@superadmin.com',
-                    password = ${hashedPassword},
-                    role_id = 1,
-                    is_active = true,
-                    updated_at = NOW()
-                WHERE id = 1
-            `;
+            await pool.query(
+                `UPDATE users SET name = $1, email = $2, password = $3, role_id = $4, is_active = $5, updated_at = NOW() WHERE id = $6`,
+                ['sumanth', 'sumanth@superadmin.com', hashedPassword, 1, true, 1]
+            );
             
             console.log("✅ Superuser updated successfully!");
         } else {
@@ -41,34 +36,34 @@ async function createSuperUser() {
             console.log("Creating new superuser...");
             
             // First, ensure Super Admin role exists
-            const superAdminRole = await sql`SELECT * FROM roles WHERE id = 1`;
-            
+            const superAdminRoleRes = await pool.query('SELECT * FROM roles WHERE id = $1', [1]);
+            const superAdminRole = superAdminRoleRes.rows;
             if (superAdminRole.length === 0) {
                 console.log("Creating Super Admin role...");
-                await sql`
-                    INSERT INTO roles (id, name, description, is_active, created_at) 
-                    VALUES (1, 'Super Admin', 'Full system access with all permissions', true, NOW())
-                    ON CONFLICT (id) DO NOTHING
-                `;
+                await pool.query(
+                    `INSERT INTO roles (id, name, description, is_active, created_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (id) DO NOTHING`,
+                    [1, 'Super Admin', 'Full system access with all permissions', true]
+                );
                 console.log("Super Admin role created");
             } else {
                 console.log("Super Admin role already exists");
             }
             
             // Create the superuser with specific ID
-            await sql`
-                INSERT INTO users (id, name, email, password, role_id, is_active, created_at) 
-                VALUES (1, 'sumanth', 'sumanth@superadmin.com', ${hashedPassword}, 1, true, NOW())
-            `;
+            await pool.query(
+                `INSERT INTO users (id, name, email, password, role_id, is_active, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+                [1, 'sumanth', 'sumanth@superadmin.com', hashedPassword, 1, true]
+            );
             
             // Reset the sequence to continue from 2 for future users
-            await sql`SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))`;
+            await pool.query("SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))");
             
             console.log("✅ Superuser created successfully!");
         }
         
         // Verify the user was created/updated
-        const verifyUser = await sql`SELECT id, name, email, role_id, is_active, created_at FROM users WHERE id = 1`;
+    const verifyUserRes = await pool.query('SELECT id, name, email, role_id, is_active, created_at FROM users WHERE id = $1', [1]);
+    const verifyUser = verifyUserRes.rows;
         console.log("\n📋 Superuser details:");
         console.log("ID:", verifyUser[0].id);
         console.log("Name:", verifyUser[0].name);
@@ -85,9 +80,10 @@ async function createSuperUser() {
         console.error("❌ Error creating superuser:", error);
         throw error;
     } finally {
-        // Close the database connection
-        await sql.end();
-        console.log("\nDatabase connection closed.");
+        // Close the database pool
+        const poolRef = getPool();
+        await poolRef.end();
+        console.log('\nDatabase pool closed.');
     }
 }
 

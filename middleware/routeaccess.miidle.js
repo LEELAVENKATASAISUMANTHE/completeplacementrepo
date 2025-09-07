@@ -1,142 +1,88 @@
 // routeaccess.middleware.js
-import { checkUserPermission } from "../db/haspermission.js"; 
+import { checkUserPermission } from '../db/haspermission.js';
+
+const unauthorized = (req, res, msg = 'Authentication required') =>
+  res.status(401).json({ success: false, error: { code: 'unauthorized', message: msg }, route: req.originalUrl });
+
+const forbidden = (req, res, msg = 'Forbidden') =>
+  res.status(403).json({ success: false, error: { code: 'forbidden', message: msg }, route: req.originalUrl });
+
+const internalErr = (req, res, msg = 'Internal Server Error') =>
+  res.status(500).json({ success: false, error: { code: 'internal_error', message: msg }, route: req.originalUrl });
 
 // Basic authentication check
 export const requireAuth = (req, res, next) => {
-  console.log("Checking authentication for route:", req.originalUrl);
-  console.log("Session user:", req.session.user);
-  if (!req.session.user) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "Authentication required",
-      route: req.originalUrl 
-    });
-  }
+  if (!req.session?.user && !req.session?.userId) return unauthorized(req, res);
   next();
 };
 
 // Check if user has specific permission
 export const requirePermission = (permissionName) => {
   return async (req, res, next) => {
-    if (!req.session.user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Not authenticated",
-        route: req.originalUrl 
-      });
-    }
-    
+    if (!req.session?.user && !req.session?.userId) return unauthorized(req, res);
     try {
-      // Check if user has the required permission
-      const hasPermission = await checkUserPermission(req.session.user.role_id, permissionName);
-      if (!hasPermission) {
-        return res.status(403).json({ 
-          success: false, 
-          message: `Access denied. Required permission: ${permissionName}`,
-          route: req.originalUrl 
-        });
-      }
+      const userId = req.session?.user?.id ?? req.session?.userId;
+      const hasPermission = await checkUserPermission(userId, permissionName);
+      if (!hasPermission) return forbidden(req, res, `Access denied. Required permission: ${permissionName}`);
       next();
     } catch (error) {
-      console.error("Permission check error:", error);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Permission check failed",
-        route: req.originalUrl 
-      });
+      console.error('requirePermission error:', error?.message || error);
+      return internalErr(req, res, 'Permission check failed');
     }
   };
 };
 
-// Check if user has specific role
-export const requireRole = (roleName) => {
-  return async (req, res, next) => {
-    if (!req.session.user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Not authenticated",
-        route: req.originalUrl 
-      });
-    }
+// Check if user has specific role (accepts role id number or role name string)
+export const requireRole = (role) => {
+  return (req, res, next) => {
+    if (!req.session?.user && !req.session?.userId) return unauthorized(req, res);
+    try {
+      const user = req.session?.user;
+      if (!user) return internalErr(req, res, 'User information missing from session');
 
-    // For now, we'll check role_id, but you might want to fetch role name
-    if (req.session.user.role_id !== roleName && typeof roleName === 'number') {
-      return res.status(403).json({ 
-        success: false, 
-        message: `Access denied. Required role: ${roleName}`,
-        route: req.originalUrl 
-      });
+      if (typeof role === 'number') {
+        if (user.role_id !== role) return forbidden(req, res, `Access denied. Required role id: ${role}`);
+      } else if (typeof role === 'string') {
+        if (user.role_name !== role) return forbidden(req, res, `Access denied. Required role: ${role}`);
+      } else {
+        return internalErr(req, res, 'Invalid role specified in middleware');
+      }
+      next();
+    } catch (error) {
+      console.error('requireRole error:', error?.message || error);
+      return internalErr(req, res);
     }
-    next();
   };
 };
 
 // Admin only access (Super Admin or Admin roles)
 export const requireAdmin = async (req, res, next) => {
-  if (!req.session.user) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "Not authenticated",
-      route: req.originalUrl 
-    });
-  }
-
+  if (!req.session?.user && !req.session?.userId) return unauthorized(req, res);
   try {
-    // Check for admin permissions
-    const hasAdminPermission = await checkUserPermission(req.session.user.role_id, 'system.admin');
-    if (!hasAdminPermission) {
-      return res.status(403).json({ 
-        success: false, 
-        message: "Admin access required",
-        route: req.originalUrl 
-      });
-    }
+    const userId = req.session?.user?.id ?? req.session?.userId;
+    const hasAdminPermission = await checkUserPermission(userId, 'system.admin');
+    if (!hasAdminPermission) return forbidden(req, res, 'Admin access required');
     next();
   } catch (error) {
-    console.error("Admin check error:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Admin access check failed",
-      route: req.originalUrl 
-    });
+    console.error('requireAdmin error:', error?.message || error);
+    return internalErr(req, res, 'Admin access check failed');
   }
 };
 
 // Self or admin access (user can access their own data or admin can access any)
 export const requireSelfOrAdmin = async (req, res, next) => {
-  if (!req.session.user) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "Not authenticated",
-      route: req.originalUrl 
-    });
-  }
+  if (!req.session?.user && !req.session?.userId) return unauthorized(req, res);
+  const requestedUserId = Number(req.params?.id ?? req.params?.userId);
+  const currentUserId = req.session?.user?.id ?? req.session?.userId;
 
-  const requestedUserId = parseInt(req.params.id || req.params.userId);
-  const currentUserId = req.session.user.id;
-
-  // Allow if it's the same user
-  if (requestedUserId === currentUserId) {
-    return next();
-  }
+  if (requestedUserId === currentUserId) return next();
 
   try {
-    // Check if user has admin permission
-    const hasAdminPermission = await checkUserPermission(req.session.user.role_id, 'system.admin');
-    if (!hasAdminPermission) {
-      return res.status(403).json({ 
-        success: false, 
-        message: "Access denied. You can only access your own data",
-        route: req.originalUrl 
-      });
-    }
+    const hasAdminPermission = await checkUserPermission(currentUserId, 'system.admin');
+    if (!hasAdminPermission) return forbidden(req, res, 'Access denied. You can only access your own data');
     next();
   } catch (error) {
-    console.error("Self or admin check error:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Access check failed",
-      route: req.originalUrl 
-    });
+    console.error('requireSelfOrAdmin error:', error?.message || error);
+    return internalErr(req, res, 'Access check failed');
   }
 };

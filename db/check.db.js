@@ -207,22 +207,26 @@ const setupQueries = [
  * Executes all database setup queries in a single transaction.
  */
 export const setupDatabase = async () => {
-    const sql = getPool();
-    
+    const pool = getPool();
+
     console.log('Connected to database. Starting setup...');
 
+    const client = await pool.connect();
     try {
-        await sql.begin(async sql => {
-            for (const query of setupQueries) {
-                await sql.unsafe(query);
-            }
-        });
+        await client.query('BEGIN');
+        for (const query of setupQueries) {
+            await client.query(query);
+        }
+        await client.query('COMMIT');
         console.log('✅ Database setup completed successfully!');
     } catch (error) {
-        console.error('❌ Error during database setup. Transaction was automatically rolled back.');
+        await client.query('ROLLBACK');
+        console.error('❌ Error during database setup. Transaction was rolled back.');
         console.error(error);
-        throw error; // Re-throw the error for the calling process
-    } 
+        throw error;
+    } finally {
+        client.release();
+    }
 };
 
 // To make the script runnable directly, you can add this block.
@@ -231,8 +235,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     setupDatabase()
         .then(() => {
             console.log('Script finished.');
-            const sql = getPool();
-            sql.end(); // Close the connection
+            const pool = getPool();
+            pool.end(); // Close the pool
         })
         .catch(() => {
             console.error('Script finished with errors.');
