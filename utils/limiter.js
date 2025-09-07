@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
+  max: 100, // 5 attempts per window
   message: {
     error: 'Too many login attempts, please try again later',
     retryAfter: 15 * 60 // seconds
@@ -25,7 +25,7 @@ export const generalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 10, // 10 auth attempts per window
+  max: 100, // 10 auth attempts per window
   message: {
     error: 'Too many authentication attempts, please try again later',
     retryAfter: 10 * 60 // seconds
@@ -36,7 +36,7 @@ export const authLimiter = rateLimit({
 
 export const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // 50 admin operations per window
+  max: 500, // 50 admin operations per window
   message: {
     error: 'Too many admin operations, please try again later',
     retryAfter: 15 * 60 // seconds
