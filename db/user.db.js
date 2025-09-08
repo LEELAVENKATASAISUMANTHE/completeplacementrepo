@@ -20,7 +20,7 @@ export async function createUsers(data) {
 export async function getUsers() {
     const pool = getPool();
     try {
-        const res = await pool.query('SELECT * FROM users ORDER BY id');
+        const res = await pool.query('SELECT users.*, roles.name AS role_name FROM users JOIN roles ON users.role_id = roles.id ORDER BY users.id');
         return res.rows;
     } catch (error) {
         console.error('Error fetching users:', error);
