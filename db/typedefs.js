@@ -9,7 +9,12 @@ const typeDefs = `#graphql
     updated_at: String!
     sessions: [UserSession!]
   }
-
+  input usersearch {
+    id: ID
+    email: String
+    name: String
+    roleId: ID
+  }
   type Role {
     id: ID!
     name: String!
@@ -38,6 +43,7 @@ const typeDefs = `#graphql
   }
 
   type Query {
+    searchUsers(by: usersearch): [User]
     users: [User!]!
     user(id: ID!): User
     roles: [Role!]

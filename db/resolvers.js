@@ -6,6 +6,57 @@ export const resolvers = {
   // --- RESOLVERS FOR QUERIES (Entry Points) ---
   Query: {
     // --- User Queries ---
+    searchUsers: async (parent, args, context, info) => {
+      const { by } = args;
+
+      // If no filters are provided, return an empty array.
+      if (!by || Object.keys(by).length === 0) {
+        return [];
+      }
+
+      const baseQuery = 'SELECT * FROM users';
+      const whereClauses = [];
+      const values = [];
+      let paramIndex = 1;
+
+      // Conditionally add filters to the query
+      if (by.id) {
+        whereClauses.push(`id = $${paramIndex++}`);
+        values.push(by.id);
+      }
+
+      if (by.email) {
+        whereClauses.push(`email = $${paramIndex++}`);
+        values.push(by.email);
+      }
+
+      if (by.name) {
+        // Using ILIKE for case-insensitive, partial matching
+        whereClauses.push(`name ILIKE $${paramIndex++}`);
+        values.push(`%${by.name}%`);
+      }
+      
+      if (by.roleId) {
+        whereClauses.push(`role_id = $${paramIndex++}`);
+        values.push(by.roleId);
+      }
+
+      // If no valid criteria were added, return empty.
+      if (whereClauses.length === 0) {
+        return [];
+      }
+      
+      // Combine the parts into the final query
+      const finalQuery = `${baseQuery} WHERE ${whereClauses.join(' AND ')}`;
+      
+      try {
+        const res = await pool.query(finalQuery, values);
+        return res.rows;
+      } catch (error) {
+        console.error("Failed to search users:", error);
+        throw new Error('Failed to search users');
+      }
+    },
     user: async (_, { id }) => {
       try {
         const res = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
@@ -104,14 +155,14 @@ export const resolvers = {
     },
     // How to get the 'sessions' for a User
     sessions: async (parentUser) => {
-        // We need a 'user_id' column in the 'user_sessions' table for this to work.
-        try {
-            const res = await pool.query('SELECT * FROM user_sessions WHERE user_id = $1', [parentUser.id]);
-            return res.rows;
-        } catch (error) {
-            console.error("Failed to fetch sessions for user:", error);
-            throw new Error('Failed to fetch sessions for user');
-        }
+      // We need a 'user_id' column in the 'user_sessions' table for this to work.
+      try {
+        const res = await pool.query('SELECT * FROM user_sessions WHERE user_id = $1', [parentUser.id]);
+        return res.rows;
+      } catch (error) {
+        console.error("Failed to fetch sessions for user:", error);
+        throw new Error('Failed to fetch sessions for user');
+      }
     }
   },
 
@@ -134,13 +185,13 @@ export const resolvers = {
     },
     // How to get all 'users' with a specific Role
     users: async (parentRole) => {
-        try {
-            const res = await pool.query('SELECT * FROM users WHERE role_id = $1', [parentRole.id]);
-            return res.rows;
-        } catch (error) {
-            console.error("Failed to fetch users for role:", error);
-            throw new Error('Failed to fetch users for role');
-        }
+      try {
+        const res = await pool.query('SELECT * FROM users WHERE role_id = $1', [parentRole.id]);
+        return res.rows;
+      } catch (error) {
+        console.error("Failed to fetch users for role:", error);
+        throw new Error('Failed to fetch users for role');
+      }
     }
   },
 
@@ -165,14 +216,14 @@ export const resolvers = {
   UserSession: {
     // How to get the parent 'user' for a UserSession
     user: async (parentSession) => {
-        // This assumes a 'user_id' column exists on the user_sessions table.
-        try {
-            const res = await pool.query('SELECT * FROM users WHERE id = $1', [parentSession.user_id]);
-            return res.rows[0];
-        } catch(error){
-            console.error("Failed to fetch user for session:", error);
-            throw new Error('Failed to fetch user for session');
-        }
+      // This assumes a 'user_id' column exists on the user_sessions table.
+      try {
+        const res = await pool.query('SELECT * FROM users WHERE id = $1', [parentSession.user_id]);
+        return res.rows[0];
+      } catch (error) {
+        console.error("Failed to fetch user for session:", error);
+        throw new Error('Failed to fetch user for session');
+      }
     }
   }
 };
