@@ -31,8 +31,8 @@ export const resolvers = {
       }
 
       if (isValidValue(by.email)) {
-        whereClauses.push(`email = $${paramIndex++}`);
-        values.push(by.email);
+        whereClauses.push(`email ILIKE $${paramIndex++}`);
+        values.push(`%${by.email}%`);
       }
 
       if (isValidValue(by.name)) {
