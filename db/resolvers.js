@@ -19,34 +19,43 @@ export const resolvers = {
       const values = [];
       let paramIndex = 1;
 
+      // Helper function to check if value is valid (not null, undefined, empty, or "NULL")
+      const isValidValue = (value) => {
+        return value && value !== "NULL" && value !== "" && value.trim() !== "";
+      };
+
       // Conditionally add filters to the query
-      if (by.id) {
+      if (isValidValue(by.id)) {
         whereClauses.push(`id = $${paramIndex++}`);
         values.push(by.id);
       }
 
-      if (by.email) {
+      if (isValidValue(by.email)) {
         whereClauses.push(`email = $${paramIndex++}`);
         values.push(by.email);
       }
 
-      if (by.name) {
+      if (isValidValue(by.name)) {
         // Using ILIKE for case-insensitive, partial matching
         whereClauses.push(`name ILIKE $${paramIndex++}`);
         values.push(`%${by.name}%`);
       }
       
-      if (by.roleId) {
+      if (isValidValue(by.roleId)) {
         whereClauses.push(`role_id = $${paramIndex++}`);
         values.push(by.roleId);
-        }
+      }
+      
+      if (isValidValue(by.roleName)) {
+        // Join with roles table to search by role name
+        whereClauses.push(`role_id IN (SELECT id FROM roles WHERE name ILIKE $${paramIndex++})`);
+        values.push(`%${by.roleName}%`);
+      }
 
       // If no valid criteria were added, return empty.
       if (whereClauses.length === 0) {
         return [];
-      }
-      
-      // Combine the parts into the final query
+      }      // Combine the parts into the final query
       const finalQuery = `${baseQuery} WHERE ${whereClauses.join(' AND ')}`;
       
       try {
