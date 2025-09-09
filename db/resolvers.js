@@ -36,9 +36,9 @@ export const resolvers = {
         values.push(`%${by.name}%`);
       }
       
-      if (by.roleId) {
-        whereClauses.push(`role_id = $${paramIndex++}`);
-        values.push(by.roleId);
+      if (by.role) {
+        whereClauses.push(`role = $${paramIndex++}`);
+        values.push(by.role);
       }
 
       // If no valid criteria were added, return empty.

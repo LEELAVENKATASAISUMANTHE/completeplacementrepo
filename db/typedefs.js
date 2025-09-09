@@ -13,7 +13,7 @@ const typeDefs = `#graphql
     id: ID
     email: String
     name: String
-    role: ID
+    roleId: ID
   }
   type Role {
     id: ID!
