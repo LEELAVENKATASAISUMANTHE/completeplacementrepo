@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import adminRoutes from './routes/admin.routes.js';
 import { getPool } from './db/setup.db.js';
 import pg from 'connect-pg-simple';
+import { graphQLHandler } from './db/graphql-server.js';
 
 dotenv.config();
 
@@ -79,6 +80,9 @@ app.use(cookieParser());
 
 // Add routes
 app.use('/api', adminRoutes);
+
+// Add GraphQL endpoint
+app.all('/graphql', graphQLHandler);
 
 // Example route
 app.get("/", (req, res) => {
