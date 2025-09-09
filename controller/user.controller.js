@@ -27,14 +27,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
-export const fetchUsers = asyncHandler(async (req, res) => {
-    try {
-        const users = await getUsers();
-        return res.status(200).json({ route: req.originalUrl, success: true, users });
-    } catch (error) {
-        return res.status(500).json({ route: req.originalUrl, success: false, message: "Internal server error" });
-    }
-});
+
 
 export const deleteUser = asyncHandler(async (req, res) => {
     const userId = req.params.id;
@@ -49,17 +42,6 @@ export const deleteUser = asyncHandler(async (req, res) => {
     }
 });
 
-
-export  const getUserByEmail = asyncHandler(async (email) => {
-    try {
-        console.log("Fetching user by email:", email);
-        const user = await userbyemail(email);
-        console.log("2Fetched user:", user);
-        return user;
-    } catch (error) {
-        console.error("Error fetching user by email:", error);
-    }
-});
 
 export const getUserData = asyncHandler(async (req, res) => {
     if (req.session.user) {

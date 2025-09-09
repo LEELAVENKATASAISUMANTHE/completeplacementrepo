@@ -1,8 +1,8 @@
-import { registerUser, loginUser, fetchUsers, getUserByEmail, getUserData } from "../controller/user.controller.js";
+import { registerUser, loginUser, getUserData } from "../controller/user.controller.js";
 import { oauthConsent, oauthCallback, logout } from "../controller/oauth.js";
-import { createRole, fetchRoleById, fetchRoleByName, fetchRoles, modifyRole, removeRole } from "../controller/role.controller.js";
-import { insertPrermission, fetchPermissions, removePermission, getPermissionId } from "../controller/permission.controller.js";
-import { assignPermission, removePermissions, fetchAllRolePermissions, fetchAllPermissionsByRoleId, fetchAllRolesByPermissionId } from "../controller/rolepermission.controller.js";
+import { createRole, modifyRole, removeRole } from "../controller/role.controller.js";
+import { insertPermission,removePermission} from "../controller/permission.controller.js";
+import { assignPermission,removePermissions}from "../controller/rolepermission.controller.js";
 import { Router } from "express";
 
 // Import middleware
@@ -42,40 +42,39 @@ router.get("/logout", requireAuth, logout);
 
 // User data endpoints
 router.get("/userdata", requireAuth, getUserData);
-router.get("/userbyemail", requireAuth, requirePermission('user.read'), getUserByEmail);
-
-// === USER MANAGEMENT ROUTES ===
-// Get all users (admin only)
-router.get("/users", requireAuth, requirePermission('user.read'), adminLimiter, fetchUsers);
 
 // === ROLE MANAGEMENT ROUTES ===
-// View roles
-router.get("/roles", requireAuth, requirePermission('role.read'), fetchRoles);
-router.get("/roles/id/:id", requireAuth, requirePermission('role.read'), fetchRoleById);
-router.get("/roles/name/:name", requireAuth, requirePermission('role.read'), fetchRoleByName);
-
 // Manage roles (admin only)
 router.post("/roles", requireAuth, requirePermission('role.create'), adminLimiter, createRole);
 router.put("/roles/:id", requireAuth, requirePermission('role.update'), adminLimiter, modifyRole);
 router.delete("/roles/:id", requireAuth, requirePermission('role.delete'), adminLimiter, removeRole);
 
 // === PERMISSION MANAGEMENT ROUTES ===
-// View permissions
-router.get("/permissions", requireAuth, requirePermission('permission.read'), fetchPermissions);
-router.get("/permissions/id/:id", requireAuth, requirePermission('permission.read'), getPermissionId);
-
 // Manage permissions (admin only)
-router.post("/permissions", requireAuth, requirePermission('permission.create'), adminLimiter, insertPrermission);
 router.delete("/permissions/:id", requireAuth, requirePermission('permission.delete'), adminLimiter, removePermission);
 
 // === ROLE-PERMISSION MANAGEMENT ROUTES ===
-// View role-permission mappings
-router.get("/rolepermissions", requireAuth, requirePermission('permission.read'), fetchAllRolePermissions);
-router.get("/rolepermissions/role/:roleId", requireAuth, requirePermission('permission.read'), fetchAllPermissionsByRoleId);
-router.get("/rolepermissions/permission/:permissionId", requireAuth, requirePermission('permission.read'), fetchAllRolesByPermissionId);
-
 // Manage role-permission assignments (admin only)
 router.post("/rolepermissions", requireAuth, requirePermission('permission.assign'), adminLimiter, assignPermission);
 router.delete("/rolepermissions", requireAuth, requirePermission('permission.assign'), adminLimiter, removePermissions);
+
+// === COMMENTED ROUTES ===
+// Uncomment these routes as needed and ensure the corresponding controller functions are imported
+
+// User routes
+//router.get("/userbyemail", requireAuth, requirePermission('user.read'), getUserByEmail);
+
+// Role routes
+//router.get("/roles/name/:name", requireAuth, requirePermission('role.read'), fetchRoleByName);
+
+// Permission routes
+//router.get("/permissions", requireAuth, requirePermission('permission.read'), fetchPermissions);
+//router.get("/permissions/id/:id", requireAuth, requirePermission('permission.read'), getPermissionId);
+//router.post("/permissions", requireAuth, requirePermission('permission.create'), adminLimiter, insertPrermission);
+
+// Role-permission mapping routes
+//router.get("/rolepermissions", requireAuth, requirePermission('permission.read'), fetchAllRolePermissions);
+//router.get("/rolepermissions/role/:roleId", requireAuth, requirePermission('permission.read'), fetchAllPermissionsByRoleId);
+//router.get("/rolepermissions/permission/:permissionId", requireAuth, requirePermission('permission.read'), fetchAllRolesByPermissionId);
 
 export default router;
