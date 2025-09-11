@@ -18,7 +18,7 @@ const port = process.env.PORT || 3000;
 // Allowed CORS origins
 const allowedOrigins = [
   "http://localhost:5173", // local dev
-  "https://placement-frontend-chi.vercel.app", // Vercel frontend
+  "https://frontend-for-placement.vercel.app", // Vercel frontend
 ];
 
 // Proxy setup (needed for secure cookies behind Vercel proxy)
