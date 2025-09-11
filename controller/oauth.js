@@ -74,23 +74,36 @@ const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', pa
     }
 });
 
-export const logout = asyncHandler((req, res) => {
+export const logout = asyncHandler(async (req, res) => {
+    const targetSid = req.query.sid || (req.body && req.body.sid);
+    const store = req.sessionStore; // Provided by express-session
+
+    // If a sid is provided, delete that session directly from the store
+    if (targetSid) {
+        return store.destroy(targetSid, (err) => {
+            if (err) {
+                console.error('Error destroying session by sid:', err);
+                return res.status(500).json({ status: 'error', message: 'Could not delete session' });
+            }
+
+            // If the deleted sid is the current one, also clear cookie
+            const currentSid = req.sessionID || (req.session && req.session.id);
+            if (currentSid && currentSid === targetSid) {
+                res.clearCookie('connect.sid');
+            }
+
+            return res.status(200).json({ status: 'success', message: 'Session deleted', sid: targetSid });
+        });
+    }
+
+    // Fallback: destroy the current session
     req.session.destroy((err) => {
         if (err) {
-            console.error("Error destroying session:", err);
-            return res.status(500).json({
-                status: "error",
-                message: "Could not log out, please try again"
-            });
+            console.error('Error destroying session:', err);
+            return res.status(500).json({ status: 'error', message: 'Could not log out, please try again' });
         }
-        
-        // Clear the session cookie
-        res.clearCookie('connect.sid'); // Default session cookie name
-        
-        return res.status(200).json({
-            status: "success",
-            message: "Logged out successfully"
-        });
+        res.clearCookie('connect.sid');
+        return res.status(200).json({ status: 'success', message: 'Logged out successfully' });
     });
 });
 
