@@ -19,16 +19,34 @@ export const loginUser = asyncHandler(async (req, res) => {
     try {
         const result = await logincheck(email, password);
         if (result.success) {
-            const sessionResult = await pool.query('SELECT * FROM user_sessions WHERE user_id = $1', [result.user.id]);
-            const sessionData = sessionResult.rows.length > 0 ? sessionResult.rows[0] : null;
+            // Sanitize user object before saving to session
+            const { password: _pwd, ...safeUser } = result.user;
+            req.session.user = safeUser;
 
-            req.session.user = { ...result.user, session: sessionData };
-            console.log("User logged in:", req.session.user);
-            return res.status(200).json({ route: req.originalUrl, success: true, user: req.session.user });
+            // Ensure the session is persisted to the store before querying it back
+            await new Promise((resolve, reject) => {
+                req.session.save((err) => (err ? reject(err) : resolve()));
+            });
+
+            const sid = req.sessionID || req.session.id; // express-session exposes the sid here
+            let insertedSession = null;
+            try {
+                const sessionResult = await pool.query(
+                    'SELECT sid FROM user_sessions WHERE sid = $1',
+                    [sid]
+                );
+                insertedSession = sessionResult.rows[0] || null;
+            } catch (e) {
+                console.error('Error fetching inserted session by sid:', e);
+            }
+
+            const payload = { ...safeUser, session: insertedSession };
+            console.log('User logged in:', { userId: safeUser.id, sid });
+            return res.status(200).json({ route: req.originalUrl, success: true, user: payload });
         }
         return res.status(401).json({ route: req.originalUrl, success: false, message: "Invalid email or password" });
     } catch (error) {
-        return res.status(500).json({ route: req.originalUrl, success: false, message: "Internal server error" });
+        return res.status(500).json({ route: req.originalUrl, success: false,message: `Internal server error ${error.message}` });
     }
 });
 
