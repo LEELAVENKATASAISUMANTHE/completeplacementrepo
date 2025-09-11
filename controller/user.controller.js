@@ -1,6 +1,7 @@
 import {createUsers, getUsers,logincheck,userbyemail,deleteUserById} from "../db/user.db.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { hashPassword } from "../utils/hash.js";
+import { getPool } from "../db/index.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password, role_id } = req.body;
@@ -14,12 +15,16 @@ export const registerUser = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    const pool = getPool();
     try {
         const result = await logincheck(email, password);
         if (result.success) {
-            req.session.user = result.user;
+            const sessionResult = await pool.query('SELECT * FROM user_sessions WHERE user_id = $1', [result.user.id]);
+            const sessionData = sessionResult.rows.length > 0 ? sessionResult.rows[0] : null;
+
+            req.session.user = { ...result.user, session: sessionData };
             console.log("User logged in:", req.session.user);
-            return res.status(200).json({ route: req.originalUrl, success: true, user: result.user });
+            return res.status(200).json({ route: req.originalUrl, success: true, user: req.session.user });
         }
         return res.status(401).json({ route: req.originalUrl, success: false, message: "Invalid email or password" });
     } catch (error) {

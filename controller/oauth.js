@@ -75,8 +75,23 @@ const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', pa
 });
 
 export const logout = asyncHandler((req, res) => {
-    req.session.destroy();
-  
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error destroying session:", err);
+            return res.status(500).json({
+                status: "error",
+                message: "Could not log out, please try again"
+            });
+        }
+        
+        // Clear the session cookie
+        res.clearCookie('connect.sid'); // Default session cookie name
+        
+        return res.status(200).json({
+            status: "success",
+            message: "Logged out successfully"
+        });
+    });
 });
 
 export const getUserData = asyncHandler((req, res) => {
