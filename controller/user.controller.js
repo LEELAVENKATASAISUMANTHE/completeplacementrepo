@@ -1,7 +1,7 @@
 import {createUsers, getUsers,logincheck,userbyemail,deleteUserById} from "../db/user.db.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { hashPassword } from "../utils/hash.js";
-import { getPool } from "../db/index.js";
+import { getPool } from "../db/setup.db.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password, role_id } = req.body;
