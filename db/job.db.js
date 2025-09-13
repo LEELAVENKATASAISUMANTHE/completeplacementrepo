@@ -25,3 +25,13 @@ export const updateJobById = async (id, data) => {
   );
   return result.rows[0];
 };
+
+export const getJobById = async (id) => {
+    try {
+        const result = await pool.query("SELECT * FROM jobs WHERE id = $1", [id]);
+        return result.rows[0];
+    } catch (error) {
+        console.error("Error fetching job by ID:", error);
+        throw error;
+    }
+};
