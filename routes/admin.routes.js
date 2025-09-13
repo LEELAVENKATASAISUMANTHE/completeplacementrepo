@@ -3,6 +3,8 @@ import { oauthConsent, oauthCallback, logout } from "../controller/oauth.js";
 import { createRole, modifyRole, removeRole } from "../controller/role.controller.js";
 import { insertPermission,removePermission} from "../controller/permission.controller.js";
 import { assignPermission,removePermissions}from "../controller/rolepermission.controller.js";
+import { createCompany,deleteCompany,updateCompany } from "../controller/companies.controller.js";
+import { upload } from "../utils/multer.js";
 import { Router } from "express";
 
 // Import middleware
@@ -12,7 +14,7 @@ import {
   requireRole, 
   requireAdmin, 
   requireSelfOrAdmin 
-} from "../middleware/routeaccess.miidle.js";
+} from "../middleware/routeaccess.middleware.js";
 
 // Import rate limiters
 import { 
@@ -57,6 +59,10 @@ router.delete("/permissions/:id", requireAuth, requirePermission('permission.del
 // Manage role-permission assignments (admin only)
 router.post("/rolepermissions", requireAuth, requirePermission('permission.assign'), adminLimiter, assignPermission);
 router.delete("/rolepermissions", requireAuth, requirePermission('permission.assign'), adminLimiter, removePermissions);
+
+router.post("/companies", adminLimiter, upload.single('logo'), createCompany);
+router.delete("/companies/:id", adminLimiter, deleteCompany);
+router.put("/companies/:id", adminLimiter, upload.single('logo'), updateCompany);
 
 // === COMMENTED ROUTES ===
 // Uncomment these routes as needed and ensure the corresponding controller functions are imported

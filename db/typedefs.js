@@ -42,6 +42,26 @@ const typeDefs = `#graphql
     created_at: String!
     updated_at: String!
   }
+  type Company {
+    id: ID!
+    name: String!
+    email: String!
+    logo: String!
+    description: String!
+    headquarters: [String!]!
+    sub_branch_location: [String!]
+    created_at: String!
+    updated_at: String!
+    users: [User!]
+  }
+
+  input CompanySearchInput {
+    id: Int
+    name: String
+    email: String
+    description: String
+    headquarters: String
+  }
 
   type Query {
     searchUsers(by: usersearch): [User]
@@ -53,6 +73,9 @@ const typeDefs = `#graphql
     permission(id: ID!): Permission
     sessions: [UserSession!]
     session(id: ID!): UserSession
+    companies: [Company!]!
+    company(id: ID!): Company
+    searchCompanies(by: CompanySearchInput): [Company]
   }
 `;
 export default typeDefs;  

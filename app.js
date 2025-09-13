@@ -86,6 +86,7 @@ app.all('/graphql', graphQLHandler);
 
 // Example route
 app.get("/", (req, res) => {
+  console.log("Defining root route now");
   res.send("Backend is running on Vercel 🚀");
 });
 
