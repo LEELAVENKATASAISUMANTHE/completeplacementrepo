@@ -1,6 +1,7 @@
 import { get } from "http";
-import {createJob, deletejobById, updateJobById,getJobById,getJobById} from "../db/job.db.js";
+import {createJob, deletejobById, updateJobById,getJobById} from "../db/job.db.js";
 import joi from "joi";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 
 
 export const jobSchema = joi.object({
@@ -27,7 +28,7 @@ export const jobUpdateSchema = joi.object({
   is_active: joi.boolean(),
 });
 
-export const createJobController = async (req, res) => {
+export const createJobController = asyncHandler(async (req, res) => {
   const data = req.body;
   const { error } = jobSchema.validate(data);
   if (error) {
@@ -39,9 +40,9 @@ export const createJobController = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: "Failed to create job", message: err });
   }
-};
+});
 
-export const updateJobController = async (req, res) => {
+export const updateJobController = asyncHandler(async (req, res) => {
   const jobId = parseInt(req.params.id, 10);
  if(isNaN(jobId)) {
     return res.status(400).json({ error: "Invalid job ID" });
@@ -72,12 +73,12 @@ export const updateJobController = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: "Failed to update job", message: err });
   }
-};
+});
 
-export const deleteJobController = async (req, res) => {
-    const jobId = parseInt(req.params.id, 10);
-    if (isNaN(jobId)) {
-      return res.status(400).json({ error: "Invalid job ID" });
+export const deleteJobController = asyncHandler(async (req, res) => {
+  const jobId = parseInt(req.params.id, 10);
+  if (isNaN(jobId)) {
+    return res.status(400).json({ error: "Invalid job ID" });
     }
   try {
     await deletejobById(jobId);
@@ -85,4 +86,4 @@ export const deleteJobController = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: "Failed to delete job" });
   }
-};
+});

@@ -4,10 +4,11 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import adminRoutes from './routes/admin.routes.js';
-import { getPool } from './db/setup.db.js';
+import { getPool, checkDatabaseHealth } from './db/setup.db.js';
 import pg from 'connect-pg-simple';
 import { graphQLHandler } from './db/graphql-server.js';
-
+import { fetchAndFormatAllJobs} from './db/job.db.js';
+import cacheJobs from './src/cacheplo.js';
 dotenv.config();
 
 const app = express();
@@ -84,10 +85,31 @@ app.use('/api', adminRoutes);
 // Add GraphQL endpoint
 app.all('/graphql', graphQLHandler);
 
+// Health check endpoint
+app.get("/health", async (req, res) => {
+  try {
+    const dbHealth = await checkDatabaseHealth();
+    res.status(200).json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      database: dbHealth ? "connected" : "disconnected",
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      database: "error",
+      error: error.message
+    });
+  }
+});
+
 // Example route
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   console.log("Defining root route now");
-  res.send("Backend is running on Vercel 🚀");
+  cacheJobs(); // Call the cacheJobs function to cache jobs
+  res.send(`Backend is running on Vercel 🚀 `);
 });
 
 // Export app for both local development and Vercel

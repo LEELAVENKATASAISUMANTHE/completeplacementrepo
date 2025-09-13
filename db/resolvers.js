@@ -4,6 +4,7 @@
  */
 import { getPool } from "./setup.db.js";
 import { getAllCompanies, getCompanyById } from "./company.db.js";
+import { getJobById } from "./job.db.js";
 
 const pool = getPool();
 
@@ -39,6 +40,57 @@ export const resolvers = {
     // User Queries
     // -------------------------------------------------------------------------
     
+
+    searchJob:async (parent, args, context, info) => {
+      const { by } = args;
+
+      // If no filters are provided, return an empty array
+      if (!by || Object.keys(by).length === 0) {
+        return [];
+      }
+
+      const baseQuery = 'SELECT * FROM jobs';
+      const whereClauses = [];
+      const values = [];
+      let paramIndex = 1;
+
+      // Build dynamic WHERE clause based on provided filters
+      if (isValidValue(by.id)) {
+        whereClauses.push(`id = $${paramIndex++}`);
+        values.push(by.id);
+      }
+
+      if (isValidValue(by.title)) {
+        whereClauses.push(`title ILIKE $${paramIndex++}`);
+        values.push(`%${by.title}%`);
+      }
+
+      if (isValidValue(by.company_id)) {
+        whereClauses.push(`company_id = $${paramIndex++}`);
+        values.push(by.company_id);
+      }
+
+      if (isValidValue(by.location)) {
+        whereClauses.push(`location ILIKE $${paramIndex++}`);
+        values.push(`%${by.location}%`);
+      }
+
+      // If no valid criteria were added, return empty
+      if (whereClauses.length === 0) {
+        return [];
+      }
+
+      // Combine the parts into the final query
+      const finalQuery = `${baseQuery} WHERE ${whereClauses.join(' AND ')}`;
+
+      try {
+        const res = await pool.query(finalQuery, values);
+        return res.rows;
+      } catch (error) {
+        console.error("Failed to search jobs:", error);
+        throw new Error('Failed to search jobs');
+      }
+    },
     /**
      * Search users by various criteria
      * @param {Object} args - Arguments containing search criteria
@@ -302,6 +354,35 @@ export const resolvers = {
         console.error("Failed to fetch company:", error);
         throw new Error('Failed to fetch company');
       }
+    },
+
+    // -------------------------------------------------------------------------
+    // Job Queries
+    // -------------------------------------------------------------------------
+
+    /**
+     * Get all jobs
+     */
+    jobs: async () => {
+      try {
+        const res = await pool.query('SELECT * FROM jobs ORDER BY created_at DESC');
+        return res.rows;
+      } catch (error) {
+        console.error("Failed to fetch jobs:", error);
+        throw new Error('Failed to fetch jobs');
+      }
+    },
+
+    /**
+     * Get single job by ID
+     */
+    job: async (_, { id }) => {
+      try {
+        return await getJobById(id);
+      } catch (error) {
+        console.error("Failed to fetch job:", error);
+        throw new Error('Failed to fetch job');
+      }
     }
   },
 
@@ -450,6 +531,42 @@ export const resolvers = {
       } catch (error) {
         console.error("Failed to fetch users for company:", error);
         return []; // Return empty array if no relationship exists
+      }
+    },
+
+    /**
+     * Get jobs associated with a Company
+     * @param {Object} parentCompany - Parent company object
+     * @returns {Array} Array of job objects
+     */
+    jobs: async (parentCompany) => {
+      try {
+        const res = await pool.query('SELECT * FROM jobs WHERE company_id = $1 ORDER BY created_at DESC', [parentCompany.id]);
+        return res.rows;
+      } catch (error) {
+        console.error("Failed to fetch jobs for company:", error);
+        return []; // Return empty array if no relationship exists
+      }
+    }
+  },
+
+  /**
+   * Job type resolvers
+   * Handles relationships for Job objects
+   */
+  Job: {
+    /**
+     * Get the company for a Job
+     * @param {Object} parentJob - Parent job object
+     * @returns {Object} Company object
+     */
+    company: async (parentJob) => {
+      try {
+        const res = await pool.query('SELECT * FROM companies WHERE id = $1', [parentJob.company_id]);
+        return res.rows[0];
+      } catch (error) {
+        console.error("Failed to fetch company for job:", error);
+        throw new Error('Failed to fetch company for job');
       }
     }
   }
