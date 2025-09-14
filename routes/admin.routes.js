@@ -4,7 +4,7 @@ import { createRole, modifyRole, removeRole } from "../controller/role.controlle
 import { insertPermission,removePermission} from "../controller/permission.controller.js";
 import { assignPermission,removePermissions}from "../controller/rolepermission.controller.js";
 import { createCompany,deleteCompany,updateCompany } from "../controller/companies.controller.js";
-import { createJobController, updateJobController, deleteJobController } from "../controller/job.controller.js";  
+import { createJobController, updateJobController, deleteJobController,getcacheJobController } from "../controller/job.controller.js";  
 import { upload } from "../utils/multer.js";
 import { Router } from "express";
 
@@ -68,6 +68,7 @@ router.put("/companies/:id", adminLimiter, upload.single('logo'), updateCompany)
 router.post("/jobs", adminLimiter, createJobController);
 router.put("/jobs/:id", adminLimiter, updateJobController);
 router.delete("/jobs/:id",  adminLimiter, deleteJobController);
+router.get("/cachejobs", adminLimiter, getcacheJobController);
 // === COMMENTED ROUTES ===
 // Uncomment these routes as needed and ensure the corresponding controller functions are imported
 

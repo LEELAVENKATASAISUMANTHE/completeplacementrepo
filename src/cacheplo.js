@@ -1,6 +1,6 @@
 import { asyncHandler } from '../utils/AsyncHandler.js'; // Assuming you have this utility
 import { fetchAndFormatAllJobs } from '../db/job.db.js';
-import client from '../db/redis.db.js'; // Your Redis client
+import { client } from '../db/redis.db.js'; // Your Redis client
 import * as lux from 'luxon';
 import { DateTime } from 'luxon';
 

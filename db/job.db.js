@@ -1,5 +1,6 @@
+import { getcacheJobController } from "../controller/job.controller.js";
 import { getPool } from "./setup.db.js";
-
+import {client} from "./redis.db.js";
 
 
 export const createJob = async (data) => {
@@ -74,10 +75,11 @@ export async function fetchAndFormatAllJobs() {
     const res = await pool.query(`
       SELECT 
         j.*, 
-        c.name as company_name 
+        c.name as company_name, 
+        c.logo as company_logo
       FROM 
         jobs j
-      LEFT JOIN 
+       JOIN 
         companies c ON j.company_id = c.id
       ORDER BY 
         j.created_at DESC
@@ -95,7 +97,8 @@ export async function fetchAndFormatAllJobs() {
       salaryRange: job.salary_range,
       company: { // Nested object, just like in your GraphQL schema
         id: job.company_id,
-        name: job.company_name
+        name: job.company_name,
+        logo: job.company_logo 
       },
       location: job.location,
       isActive: job.is_active,
@@ -112,3 +115,5 @@ export async function fetchAndFormatAllJobs() {
     return [];
   }
 };
+
+

@@ -8,6 +8,7 @@ import { getPool, checkDatabaseHealth } from './db/setup.db.js';
 import pg from 'connect-pg-simple';
 import { graphQLHandler } from './db/graphql-server.js';
 import { fetchAndFormatAllJobs} from './db/job.db.js';
+import { connectRedis } from './db/redis.db.js';
 import cacheJobs from './src/cacheplo.js';
 dotenv.config();
 
@@ -54,6 +55,12 @@ try {
 } catch (error) {
   console.error("Error initializing database connection pool:", error);
 }
+
+// Initialize Redis connection
+connectRedis()
+  .then(() => console.log("✅ Redis client connected successfully"))
+  .catch((error) => console.error("❌ Error connecting to Redis:", error));
+
 const PGStore = pg(session);
 const sessionStore = new PGStore({
   pool: pools, // Use your existing database connection pool

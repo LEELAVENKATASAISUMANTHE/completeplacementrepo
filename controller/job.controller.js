@@ -2,7 +2,7 @@ import { get } from "http";
 import {createJob, deletejobById, updateJobById,getJobById} from "../db/job.db.js";
 import joi from "joi";
 import { asyncHandler } from "../utils/AsyncHandler.js";
-
+import { getAllJobsFromCache } from "../db/redis.db.js";
 
 export const jobSchema = joi.object({
   company_id: joi.number().integer().required(),
@@ -87,3 +87,15 @@ export const deleteJobController = asyncHandler(async (req, res) => {
     return res.status(500).json({ error: "Failed to delete job" });
   }
 });
+
+export const getcacheJobController = asyncHandler(async (req, res) => {
+  try {
+    const cachedJobs = await getAllJobsFromCache();
+    console.log("Fetched cached jobs:", cachedJobs.length);
+    console.log("Fetched cached jobs:", cachedJobs);
+    return res.status(200).json(cachedJobs);
+  } catch (error) {
+    console.error("Error in getcacheJobController:", error);
+    return res.status(500).json({ error: "Failed to fetch cached jobs" });
+  }
+})
