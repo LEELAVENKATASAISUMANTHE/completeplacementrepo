@@ -62,3 +62,45 @@ export const getAllJobsFromCache = async () => {
   }
 };
 
+/**
+ * Fetches a single job from cache by job ID and company ID
+ * @param {number} jobId - The job ID
+ * @param {number} companyId - The company ID
+ * @returns {Promise<Object|null>} Job object or null if not found
+ */
+export const getJobFromCache = async (jobId, companyId) => {
+  try {
+    const key = `job_${jobId}_${companyId}`;
+    const cachedJob = await client.get(key);
+    
+    if (cachedJob) {
+      console.log(`Job ${jobId} found in cache`);
+      return JSON.parse(cachedJob);
+    }
+    
+    console.log(`Job ${jobId} not found in cache`);
+    return null;
+  } catch (error) {
+    console.error('Error getting job from cache:', error);
+    return null;
+  }
+};
+
+/**
+ * Removes a job from cache when it's deleted or updated
+ * @param {number} jobId - The job ID
+ * @param {number} companyId - The company ID
+ */
+export const removeJobFromCache = async (jobId, companyId) => {
+  try {
+    const key = `job_${jobId}_${companyId}`;
+    await client.del(key);
+    console.log(`Removed job ${jobId} from cache`);
+  } catch (error) {
+    console.error('Error removing job from cache:', error);
+  }
+};
+
+// Export both the client and the connect function
+export { client, connectRedis };
+
