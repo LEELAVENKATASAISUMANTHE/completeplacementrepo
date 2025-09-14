@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/AsyncHandler.js'; // Assuming you have th
 import { fetchAndFormatAllJobs } from '../db/job.db.js';
 import client from '../db/redis.db.js'; // Your Redis client
 import * as lux from 'luxon';
+import { DateTime } from 'luxon';
 
 const cacheJobs = asyncHandler(async () => {
     try {
@@ -13,16 +14,19 @@ const cacheJobs = asyncHandler(async () => {
 
         let cachedCount = 0;
         for (const job of jobs) {
-            const key = `${job.id}_${job.company.id}`;
-            const dualation = job.end_date ? lux.DateTime.fromISO(job.end_date).diffNow("seconds").seconds : 86400; // Default to 24 hours
-
-            if (dualation > 0) {
+            //console.log(job);
+            const key = `job_${job.id}_${job.company.id}`;
+            const jobStartDate = new Date(job.endDate);
+            const sec = DateTime.fromJSDate(jobStartDate).toSeconds();
+            const dualation = Math.floor(sec - DateTime.now().toSeconds());
+            if(dualation > 0) {
                 // 2. Instead of sending the command, add it to the pipeline
-                multi.setEx(key, Math.floor(dualation), JSON.stringify(job));
+                multi.setEx(key, dualation, JSON.stringify(job));
                 cachedCount++;
             } else {
                 console.log(`Skipping job with key: ${key} as it has already expired.`);
             }
+
         }
         
         // 3. Execute all commands in the pipeline at once
