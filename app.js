@@ -9,7 +9,7 @@ import pg from 'connect-pg-simple';
 import { graphQLHandler } from './db/graphql-server.js';
 import { fetchAndFormatAllJobs} from './db/job.db.js';
 import { connectRedis } from './db/redis.db.js';
-import cacheJobs from './src/cacheplo.js';
+
 dotenv.config();
 
 const app = express();
@@ -115,7 +115,9 @@ app.get("/health", async (req, res) => {
 // Example route
 app.get("/", async (req, res) => {
   console.log("Defining root route now");
-  cacheJobs(); // Call the cacheJobs function to cache jobs
+  //cacheJobs();
+   // Call the cacheJobs function to cache jobs
+   //cacheNotices(); // Call the cacheNotices function to cache notices
   res.send(`Backend is running on Vercel 🚀 `);
 });
 

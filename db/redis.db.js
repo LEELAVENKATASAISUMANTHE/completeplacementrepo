@@ -101,6 +101,55 @@ export const removeJobFromCache = async (jobId, companyId) => {
   }
 };
 
+/**
+ * Fetches all public notices from cache, fallback to DB via fetchAndFormatAllNotices
+ */
+export const getAllNoticesFromCache = async () => {
+  try {
+    const noticeKeys = await client.keys('notice_*');
+    console.log('Found notice keys:', noticeKeys.length);
+    if (noticeKeys.length > 0) {
+      console.log('Returning notices from Redis cache...');
+      const noticeValues = await client.mGet(noticeKeys);
+      const parsed = noticeValues.map(v => (v ? JSON.parse(v) : null)).filter(v => v !== null);
+      // Filter out expired notices based on expiresAt if present
+      const now = Date.now();
+      const valid = parsed.filter(n => !n.expiresAt || new Date(n.expiresAt).getTime() > now);
+      console.log(`Retrieved ${valid.length} notices from cache`);
+      return valid;
+    }
+    console.log('Notice cache miss. Fetching from database...');
+    // const { fetchAndFormatAllNotices } = await import('./notice.db.js');
+    // return await fetchAndFormatAllNotices();
+  } catch (error) {
+    console.error('Error in getAllNoticesFromCache:', error);
+    const { fetchAndFormatAllNotices } = await import('./notice.db.js');
+    return await fetchAndFormatAllNotices();
+  }
+};
+
+export const getNoticeFromCache = async (noticeId) => {
+  try {
+    const key = `notice_${noticeId}`;
+    const cached = await client.get(key);
+    if (cached) return JSON.parse(cached);
+    return null;
+  } catch (error) {
+    console.error('Error getting notice from cache:', error);
+    return null;
+  }
+};
+
+export const removeNoticeFromCache = async (noticeId) => {
+  try {
+    const key = `notice_${noticeId}`;
+    await client.del(key);
+    console.log(`Removed notice ${noticeId} from cache`);
+  } catch (error) {
+    console.error('Error removing notice from cache:', error);
+  }
+};
+
 // Export both the client and the connect function
 export { client, connectRedis };
 

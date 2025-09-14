@@ -4,6 +4,11 @@ import joi from "joi";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { getAllJobsFromCache } from "../db/redis.db.js";
 
+import cacheJobs from '../src/cacheplo.js';
+// import { cacheNotices } from "../src/noticeplo.js";
+
+// Validation schema for job creation and update
+
 export const jobSchema = joi.object({
   company_id: joi.number().integer().required(),
   title: joi.string().min(2).max(100).required(),
@@ -36,6 +41,7 @@ export const createJobController = asyncHandler(async (req, res) => {
   }
   try {
     const job = await createJob(data);
+    cacheJobs();
     return res.status(201).json(job);
   } catch (err) {
     return res.status(500).json({ error: "Failed to create job", message: err });
@@ -69,6 +75,7 @@ export const updateJobController = asyncHandler(async (req, res) => {
   };
   try {
     const updatedJob = await updateJobById(jobId, insertdata);
+    cacheJobs();
     return res.status(200).json(updatedJob);
   } catch (err) {
     return res.status(500).json({ error: "Failed to update job", message: err });
@@ -82,6 +89,7 @@ export const deleteJobController = asyncHandler(async (req, res) => {
     }
   try {
     await deletejobById(jobId);
+    cacheJobs();
     return res.status(204).send();
   } catch (err) {
     return res.status(500).json({ error: "Failed to delete job" });
@@ -91,8 +99,7 @@ export const deleteJobController = asyncHandler(async (req, res) => {
 export const getcacheJobController = asyncHandler(async (req, res) => {
   try {
     const cachedJobs = await getAllJobsFromCache();
-    console.log("Fetched cached jobs:", cachedJobs.length);
-    console.log("Fetched cached jobs:", cachedJobs);
+   
     return res.status(200).json(cachedJobs);
   } catch (error) {
     console.error("Error in getcacheJobController:", error);
